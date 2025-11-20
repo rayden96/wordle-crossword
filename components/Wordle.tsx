@@ -120,7 +120,6 @@ export default function Wordle({ solution, onSolved, maxGuesses = 6 }: Props) {
 			<div className="grid gap-2">
 				{Array.from({ length: maxGuesses }).map((_, row) => {
 					const guess = guesses[row] ?? (row === guesses.length ? current : "");
-					const filled = (guesses[row] ?? "").length === size;
 					const evalStates =
 						row < guesses.length
 							? evaluateGuess(guesses[row], normalizedSolution)

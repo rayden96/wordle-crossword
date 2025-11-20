@@ -10,7 +10,6 @@ type Experience = {
 export default function RewardPage() {
 	const [loading, setLoading] = useState(true);
 	const [experience, setExperience] = useState<Experience | null>(null);
-	const [code, setCode] = useState<string>("");
 	const router = useRouter();
 	const date = useMemo(() => todayYmd(true), []);
 
@@ -20,7 +19,6 @@ export default function RewardPage() {
 			router.replace("/");
 			return;
 		}
-		setCode(c);
 		(async () => {
 			// Gate: require Crossword completion
 			const prog = await fetch(`/api/progress?code=${encodeURIComponent(c)}&date=${date}`);

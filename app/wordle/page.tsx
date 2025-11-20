@@ -41,7 +41,7 @@ export default function WordlePage() {
 			}
 			setLoading(false);
 		})();
-	}, []);
+	}, [router]);
 
 	const markComplete = async () => {
 		await fetch("/api/progress", {

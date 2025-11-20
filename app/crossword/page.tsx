@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { todayYmd } from "@/utils/date";
 import dynamic from "next/dynamic";
 import { useRef } from "react";
+import type { Experience as ExperienceType } from "@/types/experience";
 
 // Prevent SSR for the crossword component to avoid hydration edge-cases.
 const CrosswordNoSSR = dynamic(
@@ -12,9 +13,9 @@ const CrosswordNoSSR = dynamic(
 	{ ssr: false }
 );
 
-type Experience = {
-	crossword_data: any;
-};
+type CrosswordData = ExperienceType["crossword_data"];
+type Experience = { crossword_data: CrosswordData };
+type CrosswordHandle = { isCrosswordCorrect?: () => boolean; reset?: () => void };
 
 export default function CrosswordPage() {
 	const [loading, setLoading] = useState(true);
@@ -23,7 +24,7 @@ export default function CrosswordPage() {
 	const [status, setStatus] = useState<string>("");
 	const router = useRouter();
 	const date = useMemo(() => todayYmd(true), []);
-	const xwRef = useRef<any>(null);
+	const xwRef = useRef<CrosswordHandle | null>(null);
 
 	useEffect(() => {
 		const c = localStorage.getItem("player_code");
@@ -87,9 +88,15 @@ export default function CrosswordPage() {
 				{!loading && experience && (
 					<div className="rounded-md border border-orange/30 p-3 bg-cream/40">
 						<CrosswordNoSSR
-							ref={xwRef as any}
+							ref={(instance) => {
+								// Store a limited handle without using 'any'
+								xwRef.current = (instance as unknown) as CrosswordHandle;
+							}}
 							data={experience.crossword_data}
-							onCrosswordComplete={markComplete as any}
+							onCrosswordComplete={() => {
+								// Crossword component may pass a boolean; we ignore and just proceed.
+								void markComplete();
+							}}
 						/>
 					</div>
 				)}
