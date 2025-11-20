@@ -1,0 +1,58 @@
+"use client";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { todayYmd } from "@/utils/date";
+
+type Experience = {
+	reward_text: string;
+};
+
+export default function RewardPage() {
+	const [loading, setLoading] = useState(true);
+	const [experience, setExperience] = useState<Experience | null>(null);
+	const [code, setCode] = useState<string>("");
+	const router = useRouter();
+	const date = useMemo(() => todayYmd(true), []);
+
+	useEffect(() => {
+		const c = localStorage.getItem("player_code");
+		if (!c) {
+			router.replace("/");
+			return;
+		}
+		setCode(c);
+		(async () => {
+			// Gate: require Crossword completion
+			const prog = await fetch(`/api/progress?code=${encodeURIComponent(c)}&date=${date}`);
+			if (prog.ok) {
+				const p = await prog.json();
+				if (!p?.crossword_completed) {
+					router.replace("/crossword");
+					return;
+				}
+			}
+			const res = await fetch(`/api/experience?date=${date}`);
+			if (res.ok) {
+				const data = await res.json();
+				setExperience({ reward_text: data.reward_text });
+			}
+			setLoading(false);
+		})();
+	}, [date, router]);
+
+	return (
+		<div className="min-h-screen bg-cream flex items-center justify-center px-6">
+			<div className="w-full max-w-2xl rounded-2xl shadow-lg bg-white p-8 border border-orange/20">
+				<h2 className="text-2xl font-semibold text-rust mb-2">Your Reward</h2>
+				{loading && <div className="text-rust/70">Loading...</div>}
+				{!loading && experience && (
+					<p className="text-lg leading-relaxed text-rust/90 whitespace-pre-wrap">
+						{experience.reward_text}
+					</p>
+				)}
+			</div>
+		</div>
+	);
+}
+
+

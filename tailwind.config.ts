@@ -11,6 +11,9 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        rust: "#B7410E",
+        orange: "#FF7A00",
+        cream: "#FFF5E6",
       },
     },
   },
