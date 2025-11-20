@@ -5,6 +5,7 @@ import { todayYmd } from "@/utils/date";
 import dynamic from "next/dynamic";
 import { useRef } from "react";
 import type { Experience as ExperienceType } from "@/types/experience";
+import Loading from "@/components/Loading";
 
 // Prevent SSR for the crossword component to avoid hydration edge-cases.
 const CrosswordNoSSR = dynamic(
@@ -84,7 +85,7 @@ export default function CrosswordPage() {
 							: "Some answers are still incorrect."}
 					</div>
 				)}
-				{loading && <div className="text-rust/70">Loading...</div>}
+				{loading && <Loading />}
 				{!loading && experience && (
 					<div className="rounded-md border border-orange/30 p-3 bg-cream/40">
 						<CrosswordNoSSR
@@ -113,12 +114,6 @@ export default function CrosswordPage() {
 						className="border border-orange/40 text-rust bg-cream px-4 py-2 rounded-md mr-2"
 					>
 						Check answers
-					</button>
-					<button
-						onClick={markComplete}
-						className="bg-orange text-white px-4 py-2 rounded-md"
-					>
-						Mark Completed
 					</button>
 				</div>
 			</div>

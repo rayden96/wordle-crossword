@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { todayYmd } from "@/utils/date";
 import Wordle from "@/components/Wordle";
+import Loading from "@/components/Loading";
 
 type Experience = {
 	wordle_answer: string;
@@ -65,35 +66,12 @@ export default function WordlePage() {
 				<p className="text-orange/80 mb-4">
 					Guess today&apos;s special word. Good luck!
 				</p>
-				{loading && <div className="text-rust/70">Loading...</div>}
+				{loading && <Loading />}
 				{!loading && experience && (
 					<div className="text-sm text-rust/70 mb-4">
 						<Wordle solution={experience.wordle_answer} onSolved={markComplete} />
 					</div>
 				)}
-				<div className="mt-2 flex items-center">
-					<button
-						onClick={async () => {
-							if (!code) return;
-							await fetch("/api/progress", {
-								method: "POST",
-								headers: { "Content-Type": "application/json" },
-								body: JSON.stringify({
-									code,
-									date: todayYmd(true),
-									wordleCompleted: false,
-									crosswordCompleted: false,
-								}),
-							});
-							// reload page state
-							router.refresh();
-						}}
-						className="ml-2 border border-orange/40 text-rust bg-cream px-4 py-2 rounded-md"
-						title="Reset today across devices"
-					>
-						Reset today (server)
-					</button>
-				</div>
 			</div>
 		</div>
 	);

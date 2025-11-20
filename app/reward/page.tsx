@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { todayYmd } from "@/utils/date";
+import Loading from "@/components/Loading";
 
 type Experience = {
 	reward_text: string;
@@ -42,7 +43,7 @@ export default function RewardPage() {
 		<div className="min-h-screen bg-cream flex items-center justify-center px-6">
 			<div className="w-full max-w-2xl rounded-2xl shadow-lg bg-white p-8 border border-orange/20">
 				<h2 className="text-2xl font-semibold text-rust mb-2">Your Reward</h2>
-				{loading && <div className="text-rust/70">Loading...</div>}
+				{loading && <Loading />}
 				{!loading && experience && (
 					<p className="text-lg leading-relaxed text-rust/90 whitespace-pre-wrap">
 						{experience.reward_text}
