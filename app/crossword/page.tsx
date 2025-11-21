@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { useRef } from "react";
 import type { Experience as ExperienceType } from "@/types/experience";
 import Loading from "@/components/Loading";
+import Notice from "@/components/Notice";
 
 // Prevent SSR for the crossword component to avoid hydration edge-cases.
 const CrosswordNoSSR = dynamic(
@@ -23,8 +24,9 @@ export default function CrosswordPage() {
 	const [experience, setExperience] = useState<Experience | null>(null);
 	const [code, setCode] = useState<string>("");
 	const [status, setStatus] = useState<string>("");
+	const [noContent, setNoContent] = useState(false);
 	const router = useRouter();
-	const date = useMemo(() => todayYmd(true), []);
+	const date = useMemo(() => todayYmd(), []);
 	const xwRef = useRef<CrosswordHandle | null>(null);
 
 	useEffect(() => {
@@ -48,6 +50,8 @@ export default function CrosswordPage() {
 			if (res.ok) {
 				const data = await res.json();
 				setExperience({ crossword_data: data.crossword_data });
+			} else {
+				setNoContent(true);
 			}
 			setLoading(false);
 		})();
@@ -70,6 +74,7 @@ export default function CrosswordPage() {
 	return (
 		<div className="min-h-screen bg-cream flex items-center justify-center px-6">
 			<div className="w-full max-w-4xl bg-white rounded-2xl border border-orange/20 p-6 shadow">
+				{noContent && <Notice message="Come back soon for your challenge." />}
 				<h2 className="text-2xl font-semibold text-rust mb-2">Crossword</h2>
 				<p className="text-orange/80 mb-4">
 					Fill in the crossword to unlock your reward.

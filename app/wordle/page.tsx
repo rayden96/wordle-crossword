@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { todayYmd } from "@/utils/date";
 import Wordle from "@/components/Wordle";
 import Loading from "@/components/Loading";
+import Notice from "@/components/Notice";
 
 type Experience = {
 	wordle_answer: string;
@@ -13,6 +14,7 @@ export default function WordlePage() {
 	const [loading, setLoading] = useState(true);
 	const [experience, setExperience] = useState<Experience | null>(null);
 	const [code, setCode] = useState<string>("");
+	const [noContent, setNoContent] = useState(false);
 	const router = useRouter();
 
 	useEffect(() => {
@@ -26,7 +28,7 @@ export default function WordlePage() {
 			setLoading(true);
 			// If already completed, skip ahead
 			const pg = await fetch(
-				`/api/progress?code=${encodeURIComponent(c)}&date=${todayYmd(true)}`
+				`/api/progress?code=${encodeURIComponent(c)}&date=${todayYmd()}`
 			);
 			if (pg.ok) {
 				const p = await pg.json();
@@ -35,10 +37,12 @@ export default function WordlePage() {
 					return;
 				}
 			}
-			const res = await fetch(`/api/experience?date=${todayYmd(true)}`);
+			const res = await fetch(`/api/experience?date=${todayYmd()}`);
 			if (res.ok) {
 				const data = await res.json();
 				setExperience({ wordle_answer: data.wordle_answer });
+			} else {
+				setNoContent(true);
 			}
 			setLoading(false);
 		})();
@@ -50,7 +54,7 @@ export default function WordlePage() {
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
 				code,
-				date: todayYmd(true),
+				date: todayYmd(),
 				wordleCompleted: true,
 				crosswordCompleted: false,
 			}),
@@ -62,6 +66,7 @@ export default function WordlePage() {
 	return (
 		<div className="min-h-screen bg-cream flex items-center justify-center px-6">
 			<div className="w-full max-w-2xl bg-white rounded-2xl border border-orange/20 p-6 shadow">
+				{noContent && <Notice message="Come back soon for your challenge." />}
 				<h2 className="text-2xl font-semibold text-rust mb-2">Wordle</h2>
 				<p className="text-orange/80 mb-4">
 					Guess today&apos;s special word. Good luck!

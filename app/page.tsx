@@ -41,7 +41,7 @@ export default function Home() {
 							headers: { "Content-Type": "application/json" },
 							body: JSON.stringify({
 								code: "BEEPBOOP",
-								date: todayYmd(true),
+								date: todayYmd(),
 								wordleCompleted: false,
 								crosswordCompleted: false,
 							}),
