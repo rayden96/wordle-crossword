@@ -99,9 +99,17 @@ export default function CrosswordPage() {
 								xwRef.current = (instance as unknown) as CrosswordHandle;
 							}}
 							data={experience.crossword_data}
-							onCrosswordComplete={() => {
-								// Crossword component may pass a boolean; we ignore and just proceed.
-								void markComplete();
+							onCrosswordComplete={(isCorrect?: boolean) => {
+								// Only advance if both the library reports correctness AND
+								// our imperative handle agrees (when available).
+								const handleOk = xwRef.current?.isCrosswordCorrect?.();
+								const ok =
+									(isCorrect === true) && (handleOk !== false);
+								if (ok) {
+									void markComplete();
+								} else {
+									setStatus("incorrect");
+								}
 							}}
 						/>
 					</div>

@@ -39,6 +39,26 @@ function evaluateGuess(guess: string, solution: string): TileState[] {
 	return res;
 }
 
+function aggregateLetterStates(
+	guesses: string[],
+	solution: string
+): Record<string, TileState> {
+	const priority: Record<TileState, number> = { absent: 0, present: 1, correct: 2 };
+	const map: Record<string, TileState> = {};
+	for (const g of guesses) {
+		const states = evaluateGuess(g, solution);
+		for (let i = 0; i < g.length; i++) {
+			const ch = g[i];
+			const st = states[i];
+			const prev = map[ch];
+			if (prev === undefined || priority[st] > priority[prev]) {
+				map[ch] = st;
+			}
+		}
+	}
+	return map;
+}
+
 export default function Wordle({ solution, onSolved, maxGuesses = 6 }: Props) {
 	const normalizedSolution = useMemo(
 		() => solution.toUpperCase().trim(),
@@ -51,6 +71,10 @@ export default function Wordle({ solution, onSolved, maxGuesses = 6 }: Props) {
 	const [error, setError] = useState<string>("");
 
 	const canType = !solved && guesses.length < maxGuesses;
+	const letterStates = useMemo(
+		() => aggregateLetterStates(guesses, normalizedSolution),
+		[guesses, normalizedSolution]
+	);
 
 	const resetBoard = useCallback(() => {
 		setGuesses([]);
@@ -63,7 +87,16 @@ export default function Wordle({ solution, onSolved, maxGuesses = 6 }: Props) {
 		if (!canType) return;
 		if (current.length !== size) return;
 		const guess = current.toUpperCase();
-		// Validate word via API (real dictionary)
+		// Always allow the exact solution, even if it isn't in the dictionary.
+		if (guess === normalizedSolution) {
+			setError("");
+			const next = [...guesses, guess];
+			setGuesses(next);
+			setCurrent("");
+			setSolved(true);
+			return;
+		}
+		// Otherwise, validate against a real dictionary API.
 		try {
 			const res = await fetch(`/api/validate-word?word=${guess.toLowerCase()}`);
 			const { valid } = await res.json();
@@ -78,9 +111,6 @@ export default function Wordle({ solution, onSolved, maxGuesses = 6 }: Props) {
 		const next = [...guesses, guess];
 		setGuesses(next);
 		setCurrent("");
-		if (guess === normalizedSolution) {
-			setSolved(true);
-		}
 	}, [canType, current, size, guesses, normalizedSolution]);
 
 	useEffect(() => {
@@ -195,6 +225,31 @@ export default function Wordle({ solution, onSolved, maxGuesses = 6 }: Props) {
 				<div className="flex items-center gap-2">
 					<div className="w-5 h-5 rounded-md border border-orange/30 bg-cream" />
 					<span className="text-rust/80">Not in word</span>
+				</div>
+			</div>
+			{/* Letter bank */}
+			<div className="mt-4">
+				<div className="text-sm text-rust/70 mb-2">Letters tried</div>
+				<div className="grid grid-cols-13 gap-1 sm:grid-cols-13">
+					{"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((L) => {
+						const st = letterStates[L];
+						const style =
+							st === "correct"
+								? "bg-rust text-white"
+								: st === "present"
+								? "bg-orange text-white"
+								: st === "absent"
+								? "bg-cream text-rust/40 border-orange/40 line-through"
+								: "bg-cream text-rust/60 border-orange/20";
+						return (
+							<div
+								key={L}
+								className={`text-center border rounded-md px-2 py-1 ${style} text-sm font-semibold`}
+							>
+								{L}
+							</div>
+						);
+					})}
 				</div>
 			</div>
 			{solved && <ConfettiNoSSR numberOfPieces={200} recycle={false} />}
