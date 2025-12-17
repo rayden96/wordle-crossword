@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 
 // Confetti reads window size; prevent SSR to avoid hydration mismatches.
@@ -69,6 +69,7 @@ export default function Wordle({ solution, onSolved, maxGuesses = 6 }: Props) {
 	const [current, setCurrent] = useState<string>("");
 	const [solved, setSolved] = useState<boolean>(false);
 	const [error, setError] = useState<string>("");
+	const inputRef = useRef<HTMLInputElement | null>(null);
 
 	const canType = !solved && guesses.length < maxGuesses;
 	const letterStates = useMemo(
@@ -82,6 +83,33 @@ export default function Wordle({ solution, onSolved, maxGuesses = 6 }: Props) {
 		setSolved(false);
 		setError("");
 	}, []);
+
+	const focusKeyboard = useCallback(() => {
+		// Mobile needs a focused input to show the on-screen keyboard.
+		// Desktop still works via window keydown.
+		try {
+			inputRef.current?.focus({ preventScroll: true });
+		} catch {
+			inputRef.current?.focus();
+		}
+	}, []);
+
+	const typeLetter = useCallback(
+		(letter: string) => {
+			if (!canType) return;
+			const L = letter.toUpperCase();
+			if (!/^[A-Z]$/.test(L)) return;
+			setCurrent((c) => (c.length < size ? (c + L).slice(0, size) : c));
+			focusKeyboard();
+		},
+		[canType, size, focusKeyboard]
+	);
+
+	const backspace = useCallback(() => {
+		if (!canType) return;
+		setCurrent((c) => c.slice(0, -1));
+		focusKeyboard();
+	}, [canType, focusKeyboard]);
 
 	const submitGuess = useCallback(async () => {
 		if (!canType) return;
@@ -120,6 +148,9 @@ export default function Wordle({ solution, onSolved, maxGuesses = 6 }: Props) {
 	useEffect(() => {
 		const onKey = (e: KeyboardEvent) => {
 			if (!canType) return;
+			// If our hidden input is focused (mobile keyboard mode), ignore the global handler
+			// to prevent double-typing (input events + window keydown).
+			if (document.activeElement === inputRef.current) return;
 			if (e.key === "Enter") {
 				submitGuess();
 				return;
@@ -140,7 +171,52 @@ export default function Wordle({ solution, onSolved, maxGuesses = 6 }: Props) {
 	}, [canType, size, submitGuess]);
 
 	return (
-		<div>
+		<div
+			onClick={focusKeyboard}
+			onTouchStart={focusKeyboard}
+		>
+			{/* Hidden but focusable input to enable mobile typing */}
+			<input
+				ref={inputRef}
+				inputMode="text"
+				autoCapitalize="characters"
+				autoCorrect="off"
+				spellCheck={false}
+				aria-label="Type your guess"
+				className="sr-only"
+				onKeyDown={(e) => {
+					if (!canType) return;
+					if (e.key === "Enter") {
+						e.preventDefault();
+						void submitGuess();
+						return;
+					}
+					if (e.key === "Backspace") {
+						e.preventDefault();
+						setCurrent((c) => c.slice(0, -1));
+						return;
+					}
+				}}
+				onChange={(e) => {
+					if (!canType) {
+						e.currentTarget.value = "";
+						return;
+					}
+					// Mobile keyboards often update the input value rather than firing key events.
+					const v = e.currentTarget.value.toUpperCase();
+					e.currentTarget.value = "";
+					const letters = v.replace(/[^A-Z]/g, "");
+					if (!letters) return;
+					setCurrent((c) => {
+						let next = c;
+						for (const ch of letters) {
+							if (next.length >= size) break;
+							next += ch;
+						}
+						return next;
+					});
+				}}
+			/>
 			<div className="mb-3 text-rust/70 text-sm">
 				Type letters, Enter to submit, Backspace to delete.
 				<span className="ml-2">
@@ -193,7 +269,7 @@ export default function Wordle({ solution, onSolved, maxGuesses = 6 }: Props) {
 			)}
 			<div className="mt-4 flex gap-2">
 				<button
-					onClick={() => setCurrent((c) => c.slice(0, -1))}
+					onClick={backspace}
 					className="px-3 py-2 rounded-md border border-orange/40 text-rust bg-cream hover:opacity-90"
 					disabled={!canType || current.length === 0}
 				>
@@ -227,30 +303,64 @@ export default function Wordle({ solution, onSolved, maxGuesses = 6 }: Props) {
 					<span className="text-rust/80">Not in word</span>
 				</div>
 			</div>
-			{/* Letter bank */}
-			<div className="mt-4">
-				<div className="text-sm text-rust/70 mb-2">Letters tried</div>
-				<div className="grid grid-cols-13 gap-1 sm:grid-cols-13">
-					{"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((L) => {
-						const st = letterStates[L];
-						const style =
-							st === "correct"
-								? "bg-rust text-white"
-								: st === "present"
-								? "bg-orange text-white"
-								: st === "absent"
-								? "bg-cream text-rust/40 border-orange/40 line-through"
-								: "bg-cream text-rust/60 border-orange/20";
-						return (
-							<div
-								key={L}
-								className={`text-center border rounded-md px-2 py-1 ${style} text-sm font-semibold`}
+
+			{/* On-screen keyboard (mobile-friendly) */}
+			<div className="mt-4 sticky bottom-0 bg-white/95 backdrop-blur border-t border-orange/10 pt-3 pb-2">
+				{(
+					[
+						"QWERTYUIOP",
+						"ASDFGHJKL",
+						"ZXCVBNM",
+					] as const
+				).map((row, idx) => (
+					<div
+						key={row}
+						className={`flex justify-center gap-1 ${idx === 0 ? "" : "mt-1"}`}
+					>
+						{idx === 2 && (
+							<button
+								type="button"
+								onClick={() => void submitGuess()}
+								disabled={!canType || current.length !== size}
+								className="px-3 h-11 rounded-md bg-orange text-white font-semibold disabled:opacity-40"
 							>
-								{L}
-							</div>
-						);
-					})}
-				</div>
+								Enter
+							</button>
+						)}
+						{row.split("").map((L) => {
+							const st = letterStates[L];
+							const style =
+								st === "correct"
+									? "bg-rust text-white"
+									: st === "present"
+									? "bg-orange text-white"
+									: st === "absent"
+									? "bg-cream text-rust/40 border-orange/40"
+									: "bg-cream text-rust/80 border-orange/20";
+							return (
+								<button
+									key={L}
+									type="button"
+									onClick={() => typeLetter(L)}
+									disabled={!canType}
+									className={`w-9 sm:w-10 h-11 rounded-md border ${style} font-semibold disabled:opacity-60`}
+								>
+									{L}
+								</button>
+							);
+						})}
+						{idx === 2 && (
+							<button
+								type="button"
+								onClick={backspace}
+								disabled={!canType || current.length === 0}
+								className="px-3 h-11 rounded-md border border-orange/40 bg-cream text-rust font-semibold disabled:opacity-40"
+							>
+								⌫
+							</button>
+						)}
+					</div>
+				))}
 			</div>
 			{solved && <ConfettiNoSSR numberOfPieces={200} recycle={false} />}
 		</div>

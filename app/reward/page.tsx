@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { todayYmd } from "@/utils/date";
 import Loading from "@/components/Loading";
 import Notice from "@/components/Notice";
+import RewardBackground from "@/components/RewardBackground";
 
 type Experience = {
 	reward_text: string;
@@ -44,8 +45,9 @@ export default function RewardPage() {
 	}, [date, router]);
 
 	return (
-		<div className="min-h-screen bg-cream flex items-center justify-center px-6">
-			<div className="w-full max-w-2xl rounded-2xl shadow-lg bg-white p-8 border border-orange/20">
+		<div className="min-h-screen bg-cream flex items-center justify-center px-6 py-10 relative overflow-hidden">
+			<RewardBackground />
+			<div className="w-full max-w-2xl rounded-2xl shadow-lg bg-white/95 backdrop-blur border border-orange/20 p-8 relative z-10">
 				{noContent && <Notice message="Come back soon for your challenge." />}
 				<h2 className="text-2xl font-semibold text-rust mb-2">Your Reward</h2>
 				{loading && <Loading />}

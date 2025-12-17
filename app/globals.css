@@ -2,20 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  height: 100%;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+}
+
+/* Reward screen cute animation */
+@keyframes wb-float-bean {
+  0% { transform: translate3d(0, 0, 0) rotate(-10deg) scale(0.98); opacity: 0.80; }
+  25% { transform: translate3d(10px, -14px, 0) rotate(10deg) scale(1.02); opacity: 0.95; }
+  50% { transform: translate3d(-8px, -26px, 0) rotate(16deg) scale(1.04); opacity: 1; }
+  75% { transform: translate3d(6px, -10px, 0) rotate(-4deg) scale(1.01); opacity: 0.92; }
+  100% { transform: translate3d(0, 0, 0) rotate(-10deg) scale(0.98); opacity: 0.80; }
+}
+
+@keyframes wb-sparkle-rise {
+  0% { transform: translate3d(0, 0, 0) scale(0.8); opacity: 0; }
+  15% { opacity: 0.9; }
+  65% { opacity: 0.6; }
+  100% { transform: translate3d(0, -140px, 0) scale(1.15); opacity: 0; }
+}
+
+.wb-bean {
+  background: radial-gradient(circle at 30% 30%, rgba(255, 122, 0, 0.55), rgba(183, 65, 14, 0.30));
+  border: 1px solid rgba(255, 122, 0, 0.18);
+  box-shadow: 0 10px 25px rgba(183, 65, 14, 0.08);
+  animation-name: wb-float-bean;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+.wb-sparkle {
+  background: radial-gradient(circle, rgba(255, 122, 0, 0.9), rgba(255, 245, 230, 0));
+  filter: drop-shadow(0 0 10px rgba(255, 122, 0, 0.28));
+  animation-name: wb-sparkle-rise;
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wb-animate {
+    animation: none !important;
+  }
 }

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { todayYmd } from "@/utils/date";
 import Loading from "@/components/Loading";
+import CardShell from "@/components/CardShell";
 
 export default function Home() {
 	const [code, setCode] = useState("");
@@ -10,8 +11,7 @@ export default function Home() {
 	const [error, setError] = useState<string>("");
 	const router = useRouter();
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-cream px-6">
-			<div className="w-full max-w-md rounded-2xl shadow-lg bg-white p-8 border border-orange/20">
+		<CardShell maxWidthClassName="max-w-md" cardClassName="p-8 shadow-lg">
 				<h1 className="text-3xl font-semibold text-rust mb-6">
 					Hello Monkey Bean. Ready to solve this puzzle?
 				</h1>
@@ -58,8 +58,7 @@ export default function Home() {
 						<Loading />
 					</div>
 				)}
-			</div>
-		</div>
+		</CardShell>
 	);
 }
 
