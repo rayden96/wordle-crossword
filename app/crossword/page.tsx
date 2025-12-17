@@ -248,17 +248,17 @@ export default function CrosswordPage() {
 						>
 							{status === "correct"
 								? "Looks perfect!"
-								: hintMsg
-									? hintMsg
-									: statusDetail
+								: statusDetail
 									? statusDetail
 									: "Some answers are still incorrect."}
 						</div>
 					)}
-					{!status && hintMsg && (
-						<div className="text-sm text-rust/80">{hintMsg}</div>
-					)}
 				</div>
+				{hintMsg && (
+					<div className="mb-3 text-sm text-rust/70">
+						{hintMsg}
+					</div>
+				)}
 				{loading && <Loading />}
 				{!loading && experience && (
 					<div

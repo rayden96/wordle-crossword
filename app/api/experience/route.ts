@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
-import { generateCrosswordDataStrict } from "@/lib/crossword/generate";
+import { generateCrosswordData } from "@/lib/crossword/generate";
 import { getAdminClient } from "@/lib/supabaseAdmin";
 
 function todaySa() {
@@ -23,7 +23,7 @@ export async function GET(req: Request) {
 
 	const { data, error } = await supabase
 		.from("experiences")
-		.select("*")
+		.select("id,date,wordle_answer,reward_text,crossword_data,crossword_entries,updated_at")
 		.eq("date", targetDate)
 		.single();
 
@@ -34,12 +34,24 @@ export async function GET(req: Request) {
 		);
 	}
 
+	// Fast-path: if crossword_data already exists, don't regenerate.
+	// (This is the biggest perf win, since generation can be expensive.)
+	if ((data as { crossword_data?: unknown })?.crossword_data) {
+		return NextResponse.json(data, {
+			headers: {
+				// CDN cache: experiences are "daily" and rarely change. Allow short fresh cache,
+				// with longer SWR for fast loads.
+				"Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600",
+			},
+		});
+	}
+
 	// Back-compat: if a legacy row only has crossword_data, just return it.
 	// New path: if crossword_entries is present, deterministically generate crossword_data.
 	try {
 		const entries = (data as { crossword_entries?: unknown })?.crossword_entries;
 		if (Array.isArray(entries) && entries.length > 0) {
-			const crossword_data = generateCrosswordDataStrict(
+			const crossword_data = generateCrosswordData(
 				entries as Array<{ answer: string; clue: string }>
 			);
 
@@ -61,7 +73,14 @@ export async function GET(req: Request) {
 				// Ignore cache errors (missing service role key, RLS, etc.)
 			}
 
-			return NextResponse.json({ ...data, crossword_data });
+			return NextResponse.json(
+				{ ...data, crossword_data },
+				{
+					headers: {
+						"Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600",
+					},
+				}
+			);
 		}
 	} catch (e) {
 		return NextResponse.json(
@@ -74,7 +93,11 @@ export async function GET(req: Request) {
 		);
 	}
 
-	return NextResponse.json(data);
+	return NextResponse.json(data, {
+		headers: {
+			"Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600",
+		},
+	});
 }
 
 
