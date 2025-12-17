@@ -496,7 +496,7 @@ function solveWithDisconnectedFallback(entries: CrosswordEntry[], opts: PlaceOpt
 
 		// No intersection-based placement possible: start a new cluster.
 		const seed = remaining.shift()!;
-		let pos = pickNextClusterStart(grid);
+		const pos = pickNextClusterStart(grid);
 		// With a large gap, collisions should be extremely rare, but we still
 		// slide deterministically as a safety valve.
 		let attempts = 0;
