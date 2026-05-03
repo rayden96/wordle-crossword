@@ -1,0 +1,19 @@
+{
+  "name": "MonkeyBeanGames",
+  "short_name": "MonkeyBean",
+  "description": "Daily Wordle + Crossword, made with love.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFF5E6",
+  "theme_color": "#FF7A00",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -9,10 +9,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "gen": "tsx scripts/generate-content.mjs"
   },
   "dependencies": {
-    "@jaredreisinger/react-crossword": "^5.2.0",
+    "@anthropic-ai/sdk": "^0.32.1",
+    "@simplewebauthn/browser": "^11.0.0",
+    "@simplewebauthn/server": "^11.0.0",
     "@supabase/supabase-js": "^2.81.1",
     "next": "15.1.11",
     "react": "^19.0.0",
@@ -28,6 +31,7 @@
     "eslint-config-next": "15.1.6",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }

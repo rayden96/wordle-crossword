@@ -5,6 +5,7 @@ import { todayYmd } from "@/utils/date";
 import Loading from "@/components/Loading";
 import Notice from "@/components/Notice";
 import RewardBackground from "@/components/RewardBackground";
+import { useSession } from "@/components/SessionProvider";
 
 type Experience = {
 	reward_text: string;
@@ -16,16 +17,16 @@ export default function RewardPage() {
 	const router = useRouter();
 	const date = useMemo(() => todayYmd(), []);
 	const [noContent, setNoContent] = useState(false);
+	const session = useSession();
 
 	useEffect(() => {
-		const c = localStorage.getItem("player_code");
-		if (!c) {
+		if (!session.ready) return;
+		if (!session.userId) {
 			router.replace("/");
 			return;
 		}
 		(async () => {
-			// Gate: require Crossword completion
-			const prog = await fetch(`/api/progress?code=${encodeURIComponent(c)}&date=${date}`);
+			const prog = await fetch(`/api/progress?code=${encodeURIComponent(session.userId!)}&date=${date}`);
 			if (prog.ok) {
 				const p = await prog.json();
 				if (!p?.crossword_completed) {
@@ -42,7 +43,7 @@ export default function RewardPage() {
 			}
 			setLoading(false);
 		})();
-	}, [date, router]);
+	}, [date, router, session.ready, session.userId]);
 
 	return (
 		<div className="min-h-screen bg-cream flex items-center justify-center px-6 py-10 relative overflow-hidden">
@@ -56,9 +57,17 @@ export default function RewardPage() {
 						{experience.reward_text}
 					</p>
 				)}
+				<button
+					type="button"
+					onClick={async () => {
+						await session.logout();
+						router.push("/");
+					}}
+					className="mt-6 text-sm text-rust/60 hover:text-rust"
+				>
+					Sign out
+				</button>
 			</div>
 		</div>
 	);
 }
-
-

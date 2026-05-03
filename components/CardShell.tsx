@@ -11,17 +11,15 @@ type Props = {
 export default function CardShell({
 	children,
 	maxWidthClassName = "max-w-2xl",
-	cardClassName = "p-6 shadow",
+	cardClassName = "p-6 sm:p-7 shadow-md",
 }: Props) {
 	return (
-		<div className="min-h-screen bg-cream flex items-center justify-center px-6 py-10">
+		<div className="min-h-[100dvh] bg-gradient-to-b from-cream via-cream to-orange/10 flex items-center justify-center px-4 py-6 sm:py-10">
 			<div
-				className={`w-full ${maxWidthClassName} bg-white rounded-2xl border border-orange/20 ${cardClassName}`}
+				className={`w-full ${maxWidthClassName} bg-white/95 backdrop-blur rounded-2xl border border-orange/20 ${cardClassName}`}
 			>
 				{children}
 			</div>
 		</div>
 	);
 }
-
-

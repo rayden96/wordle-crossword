@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MonkeyBeanGames
 
-## Getting Started
+Daily Wordle + Crossword for Monkey Bean. Auto-generated content, passkey auth, PWA install.
 
-First, run the development server:
+## First-time setup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### 1. Env vars (`.env.local`)
+
+```
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+
+# Content generator (Anthropic Claude)
+ANTHROPIC_API_KEY=...
+
+# Auth — used to sign session/challenge cookies. 32+ random chars.
+AUTH_SECRET=...
+
+# One-time secret she types when first enrolling her passkey.
+# Defaults to "BEEPBOOP" if unset (dev only).
+ENROLL_SECRET=...
+
+# Token for /api/admin/generate (optional, only if you want HTTP gen).
+ADMIN_TOKEN=...
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Database migrations
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+In the Supabase SQL editor, run [`supabase/migrations/0001_passkeys.sql`](supabase/migrations/0001_passkeys.sql).
+You also need the existing `experiences` and `progress` tables (already in use).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Profile
 
-## Learn More
+Edit [`lib/profile.ts`](lib/profile.ts) — fill in interests, pet names, places, inside jokes. The generator reads this.
 
-To learn more about Next.js, take a look at the following resources:
+## Generating content
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run gen                                  # 7 days from today (Africa/Johannesburg)
+npm run gen -- --days 30
+npm run gen -- --start 2026-05-10 --days 14
+npm run gen -- --days 1 --overwrite          # regen today
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Existing dates are skipped unless `--overwrite`.
 
-## Deploy on Vercel
+Or HTTP, with `ADMIN_TOKEN`:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+curl -X POST -H "x-admin-token: $ADMIN_TOKEN" \
+  "https://your-host/api/admin/generate?days=7"
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Auth
+
+- First visit on a new device: **Set up a passkey** → enter `ENROLL_SECRET` → biometrics.
+- Subsequent visits: **Sign in with passkey**.
+- Session cookie lasts 90 days.
+
+## PWA
+
+Manifest at `/manifest.webmanifest`, service worker at `/sw.js` (production only). The install banner appears when the browser fires `beforeinstallprompt`. iOS: Share → Add to Home Screen.
+
+## Dev
+
+```bash
+npm install
+npm run dev
+```

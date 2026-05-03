@@ -49,3 +49,22 @@ body {
     animation: none !important;
   }
 }
+
+/* Disable iOS tap highlight + prevent double-tap zoom on game controls */
+button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Wordle tile flip on submit */
+@keyframes wb-tile-flip {
+  0% { transform: rotateX(0); }
+  50% { transform: rotateX(90deg); }
+  100% { transform: rotateX(0); }
+}
+.wb-tile-flip {
+  animation: wb-tile-flip 0.55s ease-in-out both;
+}
+
+/* Prevent rubber-band pull on mobile when card fits */
+html, body { overscroll-behavior-y: none; }
