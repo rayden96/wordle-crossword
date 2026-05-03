@@ -350,8 +350,6 @@ const Crossword = forwardRef<CrosswordHandle, Props>(function Crossword({ data, 
 		focusInput();
 	};
 
-	const cellSize = "min(11vw, 44px)";
-
 	return (
 		<div className="flex flex-col gap-4 lg:flex-row lg:items-start">
 			{/* Hidden input for mobile keyboards */}
@@ -387,51 +385,55 @@ const Crossword = forwardRef<CrosswordHandle, Props>(function Crossword({ data, 
 					{activeClueText || <span className="text-rust/50">Tap a square to begin.</span>}
 				</div>
 
-				<div className="overflow-x-auto">
-					<div
-						className="inline-grid gap-px bg-rust/30 p-px rounded-md select-none"
-						style={{
-							gridTemplateColumns: `repeat(${grid.cols}, ${cellSize})`,
-							gridTemplateRows: `repeat(${grid.rows}, ${cellSize})`,
-						}}
-					>
-						{Array.from({ length: grid.rows }).map((_, rIdx) => (
-							Array.from({ length: grid.cols }).map((__, cIdx) => {
-								const r = grid.bounds.minR + rIdx;
-								const c = grid.bounds.minC + cIdx;
-								const meta = grid.cells.get(ck(r, c));
-								if (!meta) {
-									return <div key={`${r},${c}`} className="bg-transparent" />;
-								}
-								const filledCh = filled[ck(r, c)] ?? "";
-								const isCursor = cursor && cursor.row === r && cursor.col === c;
-								const isActive = activeKeys.has(ck(r, c));
-								const wrong = filledCh && filledCh !== meta.answer;
-								const bg = isCursor
-									? "bg-orange/30"
-									: isActive
-										? "bg-orange/15"
-										: "bg-white";
-								const text = wrong ? "text-red-600" : "text-rust";
+				<div
+					className="grid gap-px bg-rust/30 p-px rounded-md select-none w-full mx-auto"
+					style={{
+						gridTemplateColumns: `repeat(${grid.cols}, minmax(0, 1fr))`,
+						maxWidth: `min(100%, ${grid.cols * 44}px)`,
+					}}
+				>
+					{Array.from({ length: grid.rows }).map((_, rIdx) => (
+						Array.from({ length: grid.cols }).map((__, cIdx) => {
+							const r = grid.bounds.minR + rIdx;
+							const c = grid.bounds.minC + cIdx;
+							const meta = grid.cells.get(ck(r, c));
+							if (!meta) {
 								return (
-									<button
-										type="button"
+									<div
 										key={`${r},${c}`}
-										onClick={() => onCellClick(r, c)}
-										className={`relative ${bg} ${text} font-semibold flex items-center justify-center text-lg sm:text-xl active:opacity-80`}
-										style={{ width: cellSize, height: cellSize }}
-									>
-										{meta.number && (
-											<span className="absolute top-0 left-0.5 text-[8px] sm:text-[10px] text-rust/70 font-medium leading-none pt-0.5">
-												{meta.number}
-											</span>
-										)}
-										<span>{filledCh}</span>
-									</button>
+										className="bg-transparent"
+										style={{ aspectRatio: "1 / 1" }}
+									/>
 								);
-							})
-						))}
-					</div>
+							}
+							const filledCh = filled[ck(r, c)] ?? "";
+							const isCursor = cursor && cursor.row === r && cursor.col === c;
+							const isActive = activeKeys.has(ck(r, c));
+							const wrong = filledCh && filledCh !== meta.answer;
+							const bg = isCursor
+								? "bg-orange/30"
+								: isActive
+									? "bg-orange/15"
+									: "bg-white";
+							const text = wrong ? "text-red-600" : "text-rust";
+							return (
+								<button
+									type="button"
+									key={`${r},${c}`}
+									onClick={() => onCellClick(r, c)}
+									style={{ aspectRatio: "1 / 1" }}
+									className={`relative w-full ${bg} ${text} font-semibold flex items-center justify-center text-base sm:text-lg active:opacity-80`}
+								>
+									{meta.number && (
+										<span className="absolute top-0 left-0.5 text-[8px] sm:text-[10px] text-rust/70 font-medium leading-none pt-0.5">
+											{meta.number}
+										</span>
+									)}
+									<span>{filledCh}</span>
+								</button>
+							);
+						})
+					))}
 				</div>
 			</div>
 
