@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
 import { generateCrosswordData } from "@/lib/crossword/generate";
 import { getAdminClient } from "@/lib/supabaseAdmin";
+
+export const runtime = "nodejs";
 
 function todaySa() {
 	const fmt = new Intl.DateTimeFormat("en-CA", {
@@ -21,6 +22,7 @@ export async function GET(req: Request) {
 			? date
 			: todaySa();
 
+	const supabase = getAdminClient();
 	const { data, error } = await supabase
 		.from("experiences")
 		.select("id,date,wordle_answer,reward_text,crossword_data,crossword_entries,updated_at")
