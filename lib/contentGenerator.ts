@@ -8,7 +8,7 @@ export type GeneratedExperience = {
 	reward_text: string;
 };
 
-const MODEL = "claude-opus-4-7";
+const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-5";
 
 const SYSTEM = `You generate daily puzzle content for a personalised gift website.
 Output ONLY valid JSON matching this shape — no prose, no markdown fences:
@@ -111,6 +111,17 @@ export async function generateForDate(opts: {
 			return valid;
 		} catch (e) {
 			lastErr = e instanceof Error ? e : new Error(String(e));
+			// Surface the underlying cause (network error, status, etc.) instead of just "Connection error".
+			const cause = (e as { cause?: unknown })?.cause;
+			const status = (e as { status?: number })?.status;
+			const detail = [
+				lastErr.message,
+				status ? `status=${status}` : null,
+				cause ? `cause=${cause instanceof Error ? cause.message : String(cause)}` : null,
+			]
+				.filter(Boolean)
+				.join(" | ");
+			lastErr = new Error(detail);
 		}
 	}
 	throw new Error(`Generation failed after retries: ${lastErr?.message}`);
